@@ -3,7 +3,7 @@
     "target": "esnext",
     "module": "esnext",
     // "lib": [],
-    // "allowJs": true,
+    "allowJs": true,
     // "checkJs": true,
     // "jsx": "preserve",
     "declaration": true,
@@ -37,7 +37,7 @@
     // "typeRoots": [],
     // "types": [],
     // "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
+    "esModuleInterop": true
     // "preserveSymlinks": true,
 
     // "sourceRoot": "./",

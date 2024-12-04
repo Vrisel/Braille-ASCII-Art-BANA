@@ -1,9 +1,9 @@
 import { $, on, rgbaOffset } from './helpers.js';
 import KernelDitherer from './kernel-ditherer.js';
-
+import BrailleCodec from './braille-codec.js';
 // Braille symbol is 2x4 dots
-const asciiXDots = 2;
-let asciiYDots = 3;
+const brlWidth = 2;
+let brlHeight = 3;
 
 type DithererName = 'threshold' | 'floydSteinberg' | 'stucki' | 'atkinson';
 
@@ -40,13 +40,14 @@ const ditherers: Record<DithererName, Ditherer> = {
 let dithererName: DithererName = 'floydSteinberg',
   invert = false,
   threshold = 127,
-  asciiWidth = 32,
-  asciiHeight = 100;
+  unicodeWidth = 32,
+  unicodeHeight = 100;
 
 let image: HTMLImageElement;
 let canvas = document.createElement('canvas');
 let context = canvas.getContext('2d')!;
-let ascii = '';
+let unicode = '';
+let banacode = '';
 
 on(document, 'DOMContentLoaded', function (e) {
   on($<HTMLInputElement>('#filepicker'), 'change', async function () {
@@ -56,6 +57,13 @@ on(document, 'DOMContentLoaded', function (e) {
     image.src = URL.createObjectURL(this.files[0].slice(0));
     await new Promise((resolve) => on(image, 'load', resolve));
 
+    render();
+  });
+
+  on($<HTMLSelectElement>('#brltype'), 'change', function () {
+    let newValue = parseInt(this.value);
+    if (newValue == brlHeight) return;
+    brlHeight == newValue;
     render();
   });
 
@@ -75,8 +83,8 @@ on(document, 'DOMContentLoaded', function (e) {
 
   on($<HTMLInputElement>('#width'), 'input', function () {
     let newValue = parseInt(this.value);
-    if (newValue == asciiWidth || newValue < 1) return;
-    asciiWidth = newValue;
+    if (newValue == unicodeWidth || newValue < 1) return;
+    unicodeWidth = newValue;
     render();
   });
 
@@ -87,7 +95,14 @@ on(document, 'DOMContentLoaded', function (e) {
   });
 
   on($<HTMLButtonElement>('#copy'), 'click', function () {
-    navigator.clipboard.writeText(ascii);
+    navigator.clipboard.writeText(unicode);
+    const oldText = this.textContent;
+    this.textContent = 'Copied!';
+    setTimeout(() => (this.textContent = oldText), 1000);
+  });
+
+  on($<HTMLButtonElement>('#copy2'), 'click', function () {
+    navigator.clipboard.writeText(banacode);
     const oldText = this.textContent;
     this.textContent = 'Copied!';
     setTimeout(() => (this.textContent = oldText), 1000);
@@ -102,24 +117,29 @@ on(document, 'DOMContentLoaded', function (e) {
 });
 
 async function render() {
-  asciiYDots =
+  brlHeight =
     parseInt(document.querySelector('#brltype')?.nodeValue ?? '6') / 2;
-  let asciiText: string[] = [];
-  let asciiHtml: string[] = [];
+  let unicodeText: string[] = [];
+  let unicodeHtml: string[] = [];
+  let banaText: string[] = [];
+  let banaHtml: string[] = [];
 
   if (!image) return;
 
-  asciiHeight = Math.ceil(
-    (asciiWidth * asciiXDots * (image.height / image.width)) / asciiYDots
+  unicodeHeight = Math.ceil(
+    (unicodeWidth * brlWidth * (image.height / image.width)) / brlHeight
   );
-  document.documentElement.style.setProperty('--width', asciiWidth.toString());
+  document.documentElement.style.setProperty(
+    '--width',
+    unicodeWidth.toString()
+  );
   document.documentElement.style.setProperty(
     '--height',
-    asciiHeight.toString()
+    unicodeHeight.toString()
   );
 
-  canvas.width = asciiWidth * asciiXDots;
-  canvas.height = asciiHeight * asciiYDots;
+  canvas.width = unicodeWidth * brlWidth;
+  canvas.height = unicodeHeight * brlHeight;
 
   // Fill the canvas with white
   context.globalCompositeOperation = 'source-over';
@@ -136,25 +156,29 @@ async function render() {
   const ditheredPixels = ditherer.dither(greyPixels, threshold);
   const targetValue = invert ? 255 : 0;
 
-  for (let y = 0; y < canvas.height; y += asciiYDots) {
+  for (let y = 0; y < canvas.height; y += brlHeight) {
     const line: number[] = [];
-    for (let x = 0; x < canvas.width; x += asciiXDots) {
+    for (let x = 0; x < canvas.width; x += brlWidth) {
       // Braille Unicode range starts at U2800 (= 10240 decimal)
       // Each of the eight dots is mapped to a bit in a byte which
       // determines its position in the range.
       // https://en.wikipedia.org/wiki/Braille_Patterns
       line.push(
         0x2800 +
-          /* (+(
-            ditheredPixels.data.at(rgbaOffset(x + 1, y + 3, canvas.width)) ===
-            targetValue
-          ) <<
-            7) +
-          (+(
-            ditheredPixels.data.at(rgbaOffset(x + 0, y + 3, canvas.width)) ===
-            targetValue
-          ) <<
-            6) + */
+          (brlHeight == 8
+            ? (+(
+                ditheredPixels.data.at(
+                  rgbaOffset(x + 1, y + 3, canvas.width)
+                ) === targetValue
+              ) <<
+                7) +
+              (+(
+                ditheredPixels.data.at(
+                  rgbaOffset(x + 0, y + 3, canvas.width)
+                ) === targetValue
+              ) <<
+                6)
+            : 0) +
           (+(
             ditheredPixels.data.at(rgbaOffset(x + 1, y + 2, canvas.width)) ===
             targetValue
@@ -188,21 +212,34 @@ async function render() {
       );
     }
     const lineChars = String.fromCharCode.apply(String, line);
-    asciiText.push(lineChars);
-    asciiHtml.push(
+    unicodeText.push(lineChars);
+    banaText.push(BrailleCodec.unicodeToBana(lineChars));
+    unicodeHtml.push(
       lineChars
         .split('')
         .map((char) => `<span>${char}</span>`)
         .join('')
     );
+    banaHtml.push(
+      BrailleCodec.unicodeToBana(lineChars)
+      /* .split('')
+        .map((char) => `<span>${char}</span>`)
+        .join('') */
+    );
   }
 
-  ascii = asciiText.join('\n');
+  unicode = unicodeText.join('\n');
+  banacode = banaText.join('\n');
 
-  $('#char-count')!.textContent = ascii.length.toLocaleString();
+  $('#char-count')!.textContent = unicode.length.toLocaleString();
 
   let output = $('#output')!;
-  output.style.display = 'block';
+  //output.style.display = 'block';
   output.innerHTML = '';
-  output.insertAdjacentHTML('afterbegin', asciiHtml.join('<br>'));
+  output.insertAdjacentHTML('afterbegin', unicodeHtml.join('<br>'));
+  let output2 = $('#output2')!;
+  //output2.style.display = 'block';
+  output2.innerHTML = '';
+  output2.insertAdjacentHTML('afterbegin', banaHtml.join('<br>'));
+  $('#bana')!.style.display = brlHeight != 3 ? 'none' : '';
 }

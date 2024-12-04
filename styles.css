@@ -60,7 +60,6 @@ input[type='number'] {
 
 #output {
   font: normal var(--font-size) / 1em monospace;
-  display: none;
   margin: 1em 0;
   white-space: nowrap;
   min-height: calc(var(--height) * 1em);
