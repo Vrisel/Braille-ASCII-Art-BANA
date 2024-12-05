@@ -37,7 +37,7 @@ on(document, 'DOMContentLoaded', function (e) {
         render();
     });
     on($('#brltype'), 'change', function () {
-        let newValue = parseInt(this.value);
+        let newValue = parseInt(this.value)/2;
         if (newValue == brlHeight)
             return;
         brlHeight == newValue;
@@ -162,11 +162,11 @@ async function render() {
     let output = $('#output');
     //output.style.display = 'block';
     output.innerHTML = '';
-    output.insertAdjacentHTML('afterbegin', unicodeHtml.join('<br>'));
+    output.insertAdjacentHTML('afterbegin', unicodeHtml.join('<br/>'));
     let output2 = $('#output2');
     //output2.style.display = 'block';
     output2.innerHTML = '';
-    output2.insertAdjacentHTML('afterbegin', banaHtml.join('<br>'));
+    output2.insertAdjacentHTML('afterbegin', banaHtml.join('<br/>'));
     $('#bana').style.display = brlHeight != 3 ? 'none' : '';
 }
 //# sourceMappingURL=index.js.map
