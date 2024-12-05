@@ -94,20 +94,6 @@ on(document, 'DOMContentLoaded', function (e) {
     render();
   });
 
-  on($<HTMLButtonElement>('#copy'), 'click', function () {
-    navigator.clipboard.writeText(unicode);
-    const oldText = this.textContent;
-    this.textContent = 'Copied!';
-    setTimeout(() => (this.textContent = oldText), 1000);
-  });
-
-  on($<HTMLButtonElement>('#copy2'), 'click', function () {
-    navigator.clipboard.writeText(banacode);
-    const oldText = this.textContent;
-    this.textContent = 'Copied!';
-    setTimeout(() => (this.textContent = oldText), 1000);
-  });
-
   on($<HTMLInputElement>('#font-size'), 'input', function () {
     document.documentElement.style.setProperty(
       '--font-size',
@@ -229,7 +215,9 @@ async function render() {
   }
 
   unicode = unicodeText.join('\n');
-  banacode = banaText.join('\n');
+  banacode = new DOMParser()
+    .parseFromString(banaText.join('\n'), 'text/html')
+    .documentElement.innerText;
 
   $('#char-count')!.textContent = unicode.length.toLocaleString();
 

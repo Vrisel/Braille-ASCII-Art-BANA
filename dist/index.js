@@ -69,18 +69,6 @@ on(document, 'DOMContentLoaded', function (e) {
         document.body.classList.toggle('invert', invert);
         render();
     });
-    on($('#copy'), 'click', function () {
-        navigator.clipboard.writeText(unicode);
-        const oldText = this.textContent;
-        this.textContent = 'Copied!';
-        setTimeout(() => (this.textContent = oldText), 1000);
-    });
-    on($('#copy2'), 'click', function () {
-        navigator.clipboard.writeText(banacode);
-        const oldText = this.textContent;
-        this.textContent = 'Copied!';
-        setTimeout(() => (this.textContent = oldText), 1000);
-    });
     on($('#font-size'), 'input', function () {
         document.documentElement.style.setProperty('--font-size', `${this.value}px`);
     });
@@ -157,7 +145,9 @@ async function render() {
         );
     }
     unicode = unicodeText.join('\n');
-    banacode = banaText.join('\n');
+    banacode = new DOMParser()
+        .parseFromString(banaText.join('\n'), 'text/html')
+        .documentElement.innerText;
     $('#char-count').textContent = unicode.length.toLocaleString();
     let output = $('#output');
     //output.style.display = 'block';
