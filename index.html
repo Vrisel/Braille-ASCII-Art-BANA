@@ -50,8 +50,8 @@
 
       <p>
         <label for="width">Width</label>
-        <input type="number" id="width" value="32" step="1" /> characters (>500
-        gets laggy)
+        <input type="number" id="width" value="32" step="1" />
+        characters (>500 gets laggy)
       </p>
 
       <p>
@@ -61,7 +61,15 @@
 
       <p>
         <label for="font-size">Preview font size</label>
-        <input type="number" id="font-size" value="20" />
+        <input
+          type="number"
+          id="font-size"
+          value="20"
+          oninput="document.documentElement.style.setProperty(
+          '--font-size',
+          `${this.value}px`
+        );"
+        />
       </p>
     </form>
 
@@ -69,15 +77,19 @@
       <p>(<span id="char-count">0</span> characters)</p>
 
       <div id="bana" class="col">
-        <button id="copy2" onclick="copyTextIn('#output2')">Copy in BANA</button>
+        <button id="copy2" onclick="copyTextIn('#output2');">
+          Copy in BANA
+        </button>
         <div id="output2" contenteditable="true"></div>
       </div>
       <div id="unicode" class="col">
-        <button id="copy" onclick="copyTextIn('#output')">Copy in Unicode</button>
+        <button id="copy" onclick="copyTextIn('#output');">
+          Copy in Unicode
+        </button>
         <div id="output" contenteditable="true"></div>
       </div>
     </div>
-    <script src="dist/index.js" type="module"></script>
+    <!-- <script src="dist/index.js" type="module"></script> -->
     <script>
       function copyTextIn(el) {
         navigator.clipboard.writeText(document.querySelector(el).innerText);
@@ -85,6 +97,48 @@
         this.textContent = 'Copied!';
         setTimeout(() => (this.textContent = oldText), 1000);
       }
+    </script>
+    <script src="src/index.js" type="module"></script>
+    <script type="module">
+      import BraillePainter from './src/index.js';
+
+      let painter = new BraillePainter();
+      painter.unicodeTarget = document.querySelector('#output');
+      painter.banacodeTarget = document.querySelector('#output2');
+
+      (() => {
+        document
+          .querySelector('input#filepicker')
+          .addEventListener('change', async function () {
+            if (!this.files || !this.files.length) return;
+            painter.imageSrc = this.files[0].slice(0);
+          });
+        document
+          .querySelector('select#brltype')
+          .addEventListener('change', function () {
+            painter.brlHeight = parseInt(this.value) / 2;
+          });
+        document
+          .querySelector('select#dither')
+          .addEventListener('change', function () {
+            painter.dither = this.value;
+          });
+        document
+          .querySelector('input#threshold')
+          .addEventListener('change', function () {
+            painter.threshold = this.value;
+          });
+        document
+          .querySelector('input#width')
+          .addEventListener('inpit', function () {
+            painter.unicodeWidth = this.value;
+          });
+        document
+          .querySelector('input#invert')
+          .addEventListener('change', function () {
+            painter.invert = this.checked;
+          });
+      })();
     </script>
   </body>
 </html>
