@@ -61,12 +61,15 @@ class BraillePainter {
     this.#image.addEventListener('load', () => this.render());
   }
 
+  get brlHeight() {
+    return this.#brlHeight;
+  }
   set brlHeight(newValue) {
     if (newValue == this.#brlHeight) return;
     this.#brlHeight == newValue;
     this.banacodeTarget.parentElement.style.display =
       this.#brlHeight == 3 ? '' : 'none';
-    this.render();
+    //this.render();
   }
 
   set imageSrc(newValue) {
@@ -85,13 +88,13 @@ class BraillePainter {
     if (!(newValue in BraillePainter.#ditherers)) return;
     if (newValue == this.#dithererName) return;
     this.#dithererName = newValue;
-    this.render();
+    //this.render();
   }
 
   set threshold(newValue) {
     if (newValue == this.#threshold) return;
     this.#threshold = newValue;
-    this.render();
+    //this.render();
   }
 
   get unicodeWidth() {
@@ -100,13 +103,13 @@ class BraillePainter {
   set unicodeWidth(newValue) {
     if (newValue == this.#unicodeWidth || newValue < 1) return;
     this.#unicodeWidth = newValue;
-    this.render();
+    //this.render();
   }
 
   set invert(newValue) {
     if (newValue == this.#invert) return;
     this.#invert = newValue;
-    this.render();
+    //this.render();
   }
 
   render() {
@@ -127,7 +130,7 @@ class BraillePainter {
     );
   }
 
-  #unicodeText() {
+  #unicodeLines() {
     if (!this.#imageSrc) return;
 
     let unicodeText = [];
@@ -216,11 +219,11 @@ class BraillePainter {
   }
 
   get unicodeText() {
-    return this.#unicodeText().join('\n');
+    return this.#unicodeLines().join('\n');
   }
 
   get unicodeHtml() {
-    return this.#unicodeText()
+    return this.#unicodeLines()
       .map((lineChars) =>
         lineChars
           .split('')
@@ -230,28 +233,31 @@ class BraillePainter {
       .join('<br/>');
   }
 
-  get #banacodeText() {
-    return this.#unicodeText().map((u) => BrailleCodec.unicodeToBana(u));
+  get #banacodeLines() {
+    return this.#unicodeLines().map(
+      (lineChars) =>
+        //new DOMParser().parseFromString(
+        BrailleCodec.unicodeToBana(lineChars)
+      //  'text/html'
+      //).documentElement.innerText
+    );
   }
 
   get banacodeText() {
-    return new DOMParser().parseFromString(
-      this.#banacodeText.join('\n'),
-      'text/html'
-    ).documentElement.innerText;
+    return this.#banacodeLines.join('\n');
   }
 
   get banacodeHtml() {
-    return (
-      this.#banacodeText
-        /*   .map((lineChars) =>
-          lineChars
-            .split('')
+    return this.#banacodeLines
+      .map(
+        (lineChars) =>
+          new DOMParser().parseFromString(lineChars, 'text/html')
+            .documentElement.innerText
+        /* .split('')
             .map((char) => `<span>${char}</span>`)
-            .join('')
-        ) */
-        .join('<br/>')
-    );
+            .join('') */
+      )
+      .join('<br/>');
   }
 
   get charCount() {

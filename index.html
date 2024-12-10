@@ -92,10 +92,11 @@
     <!-- <script src="dist/index.js" type="module"></script> -->
     <script>
       function copyTextIn(el) {
-        navigator.clipboard.writeText(document.querySelector(el).innerText);
-        const oldText = this.textContent;
-        this.textContent = 'Copied!';
-        setTimeout(() => (this.textContent = oldText), 1000);
+        let self = document.querySelector(el);
+        navigator.clipboard.writeText(self.innerText);
+        const oldText = self.textContent;
+        self.textContent = 'Copied!';
+        setTimeout(() => (self.textContent = oldText), 1000);
       }
     </script>
     <script src="src/index.js" type="module"></script>
@@ -106,37 +107,72 @@
       painter.unicodeTarget = document.querySelector('#output');
       painter.banacodeTarget = document.querySelector('#output2');
 
+      function updateProperties() {
+        clear();
+        painter.brlHeight =
+          parseInt(document.querySelector('select#brltype').value) / 2;
+        painter.dither = document.querySelector('select#dither').value;
+        painter.threshold = document.querySelector('input#threshold').value;
+        painter.unicodeWidth = document.querySelector('input#width').value;
+        painter.invert = document.querySelector('input#invert').checked;
+
+        render();
+      }
+      function clear() {
+        let output = document.querySelector('#output');
+        let output2 = document.querySelector('#output2');
+        output.innerHTML = '';
+        output2.innerHTML = '';
+      }
+      function render() {
+        let output = document.querySelector('#output');
+        let output2 = document.querySelector('#output2');
+        output.insertAdjacentHTML('afterbegin', painter.unicodeHtml);
+        if (painter.brlHeight == 3) {
+          output2.parentElement.style.removeProperty('display');
+          output2.insertAdjacentHTML('afterbegin', painter.banacodeHtml);
+        } else {
+          output2.parentElement.style.display = 'none';
+        }
+      }
       (() => {
         document
           .querySelector('input#filepicker')
           .addEventListener('change', async function () {
             if (!this.files || !this.files.length) return;
+            clear();
             painter.imageSrc = this.files[0].slice(0);
+            //updateProperties();
           });
         document
           .querySelector('select#brltype')
           .addEventListener('change', function () {
-            painter.brlHeight = parseInt(this.value) / 2;
+            //painter.brlHeight = parseInt(this.value) / 2;
+            updateProperties();
           });
         document
           .querySelector('select#dither')
           .addEventListener('change', function () {
-            painter.dither = this.value;
+            //painter.dither = this.value;
+            updateProperties();
           });
         document
           .querySelector('input#threshold')
           .addEventListener('change', function () {
-            painter.threshold = this.value;
+            //painter.threshold = this.value;
+            updateProperties();
           });
         document
           .querySelector('input#width')
-          .addEventListener('inpit', function () {
-            painter.unicodeWidth = this.value;
+          .addEventListener('input', function () {
+            //painter.unicodeWidth = this.value;
+            updateProperties();
           });
         document
           .querySelector('input#invert')
           .addEventListener('change', function () {
-            painter.invert = this.checked;
+            //painter.invert = this.checked;
+            updateProperties();
           });
       })();
     </script>

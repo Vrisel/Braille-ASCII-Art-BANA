@@ -58,7 +58,8 @@ input[type='number'] {
   width: 5em;
 }
 
-#output {
+#output,
+#output2 {
   font: normal var(--font-size) / 1em monospace;
   margin: 1em 0;
   white-space: nowrap;
