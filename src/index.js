@@ -234,30 +234,33 @@ class BraillePainter {
   }
 
   get #banacodeLines() {
-    return this.#unicodeLines().map(
+    const parser = new DOMParser();
+    let result = this.#unicodeLines().map(
       (lineChars) =>
-        //new DOMParser().parseFromString(
-        BrailleCodec.unicodeToBana(lineChars)
-      //  'text/html'
-      //).documentElement.innerText
+        parser.parseFromString(
+          BrailleCodec.unicodeToBana(lineChars),
+          'text/html'
+        ).documentElement.innerText
     );
+    return result;
   }
 
   get banacodeText() {
-    return this.#banacodeLines.join('\n');
+    let result = this.#banacodeLines.join('\n');
+    return result;
   }
 
   get banacodeHtml() {
-    return this.#banacodeLines
-      .map(
+    let result = this.#banacodeLines
+      /* .map(
         (lineChars) =>
-          new DOMParser().parseFromString(lineChars, 'text/html')
-            .documentElement.innerText
-        /* .split('')
-            .map((char) => `<span>${char}</span>`)
-            .join('') */
-      )
+          lineChars
+           .split('')
+           .map((char) => `<span>${char}</span>`)
+           .join('')
+      ) */
       .join('<br/>');
+    return result;
   }
 
   get charCount() {
