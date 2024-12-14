@@ -66,9 +66,7 @@ class BraillePainter {
   }
   set brlHeight(newValue) {
     if (newValue == this.#brlHeight) return;
-    this.#brlHeight == newValue;
-    this.banacodeTarget.parentElement.style.display =
-      this.#brlHeight == 3 ? '' : 'none';
+    this.#brlHeight = newValue;
     //this.render();
   }
 
