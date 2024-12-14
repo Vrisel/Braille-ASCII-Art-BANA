@@ -160,7 +160,38 @@ class BraillePainter {
         // Each of the eight dots is mapped to a bit in a byte which
         // determines its position in the range.
         // https://en.wikipedia.org/wiki/Braille_Patterns
-        line.push(
+
+        function ditheredPixel(deltaX, deltaY) {
+          let pointValue = -1;
+          if (deltaY < 3) pointValue = deltaX * 3 + (deltaY + 1);
+          else if (deltaY == 3) pointValue = deltaX + 1 + deltaY * 2;
+          if (pointValue < 1) throw new RangeError();
+
+          return (
+            +(
+              ditheredPixels.data.at(
+                rgbaOffset(x + deltaX, y + deltaY, canvas.width)
+              ) === targetValue
+            ) <<
+            (pointValue - 1)
+          );
+        }
+
+        let charCode = 0x2800;
+        charCode += ditheredPixel(0, 0);
+        charCode += ditheredPixel(0, 1);
+        charCode += ditheredPixel(0, 2);
+        charCode += ditheredPixel(1, 0);
+        charCode += ditheredPixel(1, 1);
+        charCode += ditheredPixel(1, 2);
+        if (this.#brlHeight == 4) {
+          charCode += ditheredPixel(0, 3);
+          charCode += ditheredPixel(1, 3);
+        }
+
+        line.push(charCode);
+
+        /* line.push(
           0x2800 +
             (this.#brlHeight == 8
               ? (+(
@@ -206,7 +237,7 @@ class BraillePainter {
               targetValue
             ) <<
               0)
-        );
+        ); */
       }
       const lineChars = String.fromCharCode.apply(String, line);
       unicodeText.push(lineChars);
