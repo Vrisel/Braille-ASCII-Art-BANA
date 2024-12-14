@@ -77,13 +77,13 @@
       <p>(<span id="char-count">0</span> characters)</p>
 
       <div id="bana" class="col">
-        <button id="copy2" onclick="copyTextIn('#output2');">
+        <button id="copy2" onclick="copyTextIn(this, '#output2');">
           Copy in BANA
         </button>
         <div id="output2" contenteditable="true"></div>
       </div>
       <div id="unicode" class="col">
-        <button id="copy" onclick="copyTextIn('#output');">
+        <button id="copy" onclick="copyTextIn(this, '#output');">
           Copy in Unicode
         </button>
         <div id="output" contenteditable="true"></div>
@@ -91,9 +91,9 @@
     </div>
     <!-- <script src="dist/index.js" type="module"></script> -->
     <script>
-      function copyTextIn(el) {
-        let self = document.querySelector(el);
-        navigator.clipboard.writeText(self.innerText);
+      function copyTextIn(self, el) {
+        let target = document.querySelector(el);
+        navigator.clipboard.writeText(target.innerText);
         const oldText = self.textContent;
         self.textContent = 'Copied!';
         setTimeout(() => (self.textContent = oldText), 1000);
