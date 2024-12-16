@@ -80,13 +80,18 @@
         <button id="copy2" onclick="copyTextIn(this, '#output2');">
           Copy in BANA
         </button>
-        <div id="output2" contenteditable="true"></div>
+        <button
+          onclick="document.querySelector('#output2').classList.toggle('simbrl')"
+        >
+          Toggle SimBrl Font
+        </button>
+        <div id="output2" class="output" contenteditable="true"></div>
       </div>
       <div id="unicode" class="col">
         <button id="copy" onclick="copyTextIn(this, '#output');">
           Copy in Unicode
         </button>
-        <div id="output" contenteditable="true"></div>
+        <div id="output" class="output" contenteditable="true"></div>
       </div>
     </div>
     <!-- <script src="dist/index.js" type="module"></script> -->
@@ -103,30 +108,37 @@
     <script type="module">
       import BraillePainter from './src/index.js';
 
+      const brlType = document.querySelector('select#brltype');
+      const dither = document.querySelector('select#dither');
+      const threshold = document.querySelector('input#threshold');
+      const width = document.querySelector('input#width');
+      const invert = document.querySelector('input#invert');
+
+      const charCount = document.querySelector('span#char-count');
+      const output = document.querySelector('#output');
+      const output2 = document.querySelector('#output2');
+
       let painter = new BraillePainter();
-      painter.unicodeTarget = document.querySelector('#output');
-      painter.banacodeTarget = document.querySelector('#output2');
+      painter.addEventListener('change', () => render());
 
       function updateProperties() {
-        clear();
-        painter.brlHeight =
-          parseInt(document.querySelector('select#brltype').value) / 2;
-        painter.dither = document.querySelector('select#dither').value;
-        painter.threshold = document.querySelector('input#threshold').value;
-        painter.unicodeWidth = document.querySelector('input#width').value;
-        painter.invert = document.querySelector('input#invert').checked;
-
-        render();
-      }
-      function clear() {
-        let output = document.querySelector('#output');
-        let output2 = document.querySelector('#output2');
-        output.innerHTML = '';
-        output2.innerHTML = '';
+        painter.brlHeight = parseInt(brlType.value) / 2;
+        painter.dither = dither.value;
+        painter.threshold = threshold.value;
+        painter.unicodeWidth = width.value;
+        painter.invert = invert.checked;
       }
       function render() {
-        let output = document.querySelector('#output');
-        let output2 = document.querySelector('#output2');
+        output.innerHTML = '';
+        output2.innerHTML = '';
+        document.documentElement.style.setProperty(
+          '--width',
+          painter.unicodeWidth.toString()
+        );
+        document.documentElement.style.setProperty(
+          '--height',
+          painter.unicodeHeight.toString()
+        );
         output.insertAdjacentHTML('afterbegin', painter.unicodeHtml);
         if (painter.brlHeight == 3) {
           output2.parentElement.style.removeProperty('display');
@@ -134,13 +146,14 @@
         } else {
           output2.parentElement.style.display = 'none';
         }
+        charCount.innerText = painter.charCount.toString();
       }
+
       (() => {
         document
           .querySelector('input#filepicker')
           .addEventListener('change', async function () {
             if (!this.files || !this.files.length) return;
-            clear();
             painter.imageSrc = this.files[0].slice(0);
             //updateProperties();
           });

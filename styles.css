@@ -58,15 +58,22 @@ input[type='number'] {
   width: 5em;
 }
 
-#output,
-#output2 {
+.output {
   font: normal var(--font-size) / 1em monospace;
   margin: 1em 0;
-  white-space: nowrap;
+  white-space: pre;
   min-height: calc(var(--height) * 1em);
 }
 
-#output > span {
+.output > span {
   display: inline-block;
   width: 0.5em;
+}
+
+@font-face {
+  font-family: SimBrl;
+  src: url(http://www.shodor.org/pub/SIMBRL.TTF);
+}
+.simbrl {
+  font-family: SimBrl;
 }

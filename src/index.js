@@ -2,7 +2,7 @@ import { $, on, rgbaOffset } from '../dist/helpers.js';
 import KernelDitherer from '../dist/kernel-ditherer.js';
 import BrailleCodec from './braille-codec.js';
 
-class BraillePainter {
+class BraillePainter extends EventTarget {
   static #ditherers = {
     threshold: new KernelDitherer([0, 0], [], 1),
     floydSteinberg: new KernelDitherer(
@@ -51,14 +51,16 @@ class BraillePainter {
     threshold = 127,
     dithererName = 'floydSteinberg'
   ) {
+    super();
     this.#brlHeight = brlHeight;
     this.#unicodeWidth = unicodeWidth;
     this.#invert = invert;
     this.#threshold = threshold;
     this.#dithererName = dithererName;
+  }
 
-    this.#image = document.createElement('img');
-    this.#image.addEventListener('load', () => this.render());
+  #fireChange() {
+    this.dispatchEvent(new CustomEvent('change'));
   }
 
   get brlHeight() {
@@ -68,18 +70,18 @@ class BraillePainter {
     if (newValue == this.#brlHeight) return;
     this.#brlHeight = newValue;
     //this.render();
+    this.#fireChange();
   }
 
   set imageSrc(newValue) {
     if (newValue == this.#imageSrc) return;
     this.#imageSrc = newValue;
 
-    // if (this.#image) this.#image.remove();
-    // this.#image = document.createElement('img');
+    if (!this.#image) {
+      this.#image = document.createElement('img');
+      this.#image.addEventListener('load', () => this.#fireChange());
+    }
     this.#image.src = URL.createObjectURL(this.#imageSrc);
-    /* await new Promise((resolve) => on(this.#image, 'load', resolve)).then((resolve) =>
-      this.render()
-    ); */
   }
 
   set dither(newValue) {
@@ -87,12 +89,14 @@ class BraillePainter {
     if (newValue == this.#dithererName) return;
     this.#dithererName = newValue;
     //this.render();
+    this.#fireChange();
   }
 
   set threshold(newValue) {
     if (newValue == this.#threshold) return;
     this.#threshold = newValue;
     //this.render();
+    this.#fireChange();
   }
 
   get unicodeWidth() {
@@ -102,12 +106,14 @@ class BraillePainter {
     if (newValue == this.#unicodeWidth || newValue < 1) return;
     this.#unicodeWidth = newValue;
     //this.render();
+    this.#fireChange();
   }
 
   set invert(newValue) {
     if (newValue == this.#invert) return;
     this.#invert = newValue;
     //this.render();
+    this.#fireChange();
   }
 
   render() {
@@ -190,54 +196,6 @@ class BraillePainter {
         }
 
         line.push(charCode);
-
-        /* line.push(
-          0x2800 +
-            (this.#brlHeight == 8
-              ? (+(
-                  ditheredPixels.data.at(
-                    rgbaOffset(x + 1, y + 3, canvas.width)
-                  ) === targetValue
-                ) <<
-                  7) +
-                (+(
-                  ditheredPixels.data.at(
-                    rgbaOffset(x + 0, y + 3, canvas.width)
-                  ) === targetValue
-                ) <<
-                  6)
-              : 0) +
-            (+(
-              ditheredPixels.data.at(rgbaOffset(x + 1, y + 2, canvas.width)) ===
-              targetValue
-            ) <<
-              5) +
-            (+(
-              ditheredPixels.data.at(rgbaOffset(x + 1, y + 1, canvas.width)) ===
-              targetValue
-            ) <<
-              4) +
-            (+(
-              ditheredPixels.data.at(rgbaOffset(x + 1, y + 0, canvas.width)) ===
-              targetValue
-            ) <<
-              3) +
-            (+(
-              ditheredPixels.data.at(rgbaOffset(x + 0, y + 2, canvas.width)) ===
-              targetValue
-            ) <<
-              2) +
-            (+(
-              ditheredPixels.data.at(rgbaOffset(x + 0, y + 1, canvas.width)) ===
-              targetValue
-            ) <<
-              1) +
-            (+(
-              ditheredPixels.data.at(rgbaOffset(x + 0, y + 0, canvas.width)) ===
-              targetValue
-            ) <<
-              0)
-        ); */
       }
       const lineChars = String.fromCharCode.apply(String, line);
       unicodeText.push(lineChars);
@@ -252,14 +210,16 @@ class BraillePainter {
   }
 
   get unicodeHtml() {
-    return this.#unicodeLines()
-      .map((lineChars) =>
+    return (
+      this.#unicodeLines()
+        /* .map((lineChars) =>
         lineChars
           .split('')
           .map((char) => `<span>${char}</span>`)
           .join('')
-      )
-      .join('<br/>');
+      ) */
+        .join('<br/>')
+    );
   }
 
   get #banacodeLines() {
